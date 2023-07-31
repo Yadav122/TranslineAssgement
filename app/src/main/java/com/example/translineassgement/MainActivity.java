@@ -27,6 +27,8 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_PICK = 1;
@@ -34,7 +36,13 @@ public class MainActivity extends AppCompatActivity {
     String path;
 
     private ImageView imageView;
-    Button chooseImage, UploadImage;
+    Button chooseImage, UploadImage, postDataBtn;
+    private String parameter1 = "14";
+    private String parameter2 = "1690603292851";
+    private String parameter4 = "23A Shivaji Marg, Karampura Industrial Area, Karam Pura, Delhi, 110015";
+    private String parameter3 = "28.661130,77.148360";
+    private String parameter5 = "15-07-2023 12:12:54";
+    private String parameter6 = "attendance test";
     Uri imageUri;
 
     @Override
@@ -45,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
         imageView = findViewById(R.id.imageView);
         chooseImage = findViewById(R.id.chooseImage);
         UploadImage = findViewById(R.id.upload);
+        postDataBtn = findViewById(R.id.mrkAttendence);
+
+
         // click the button  then call the   pickImageFromGallery  method
         chooseImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,6 +74,16 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        postDataBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                postData(parameter1, parameter2, parameter3, parameter4, parameter5, parameter6);
+            }
+        });
+
+
     }
 
     private void uploadImageToServer() {
@@ -133,4 +154,46 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, REQUEST_IMAGE_PICK);
     }
+
+
+    private void postData(String id, String created_at, String latlng, String location, String actDate, String remark) {
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://x8ki-letl-twmt.n7.xano.io/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
+
+
+        DataModal modal = new DataModal(id, created_at, latlng, location, actDate, remark);
+
+        Call<DataModal> call = retrofitAPI.createPost(modal);
+
+
+        call.enqueue(new Callback<DataModal>() {
+            @Override
+            public void onResponse(Call<DataModal> call, Response<DataModal> response) {
+
+                Toast.makeText(MainActivity.this, "Data added to API", Toast.LENGTH_SHORT).show();
+
+//
+//                DataModal responseFromAPI = response.body();
+//
+//                String responseString = "Response Code : " + response.code() + "\nid : " + responseFromAPI.getId() + "\n" + "created_at : " + responseFromAPI.getCreated_at()
+//                        + "\nlatitude & longitude : " + responseFromAPI.getLatlng() + "\nlocation : " + responseFromAPI.getLocation()
+//                        + "\nDate & Time : " + responseFromAPI.getActDate() + "\nremarks : " + responseFromAPI.getRemark();
+
+                Toast.makeText(MainActivity.this, "Attendence Marked Successfully", Toast.LENGTH_SHORT).show();
+
+
+            }
+
+            @Override
+            public void onFailure(Call<DataModal> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Upload Failed", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 }
